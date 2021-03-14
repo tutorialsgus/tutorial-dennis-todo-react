@@ -16,6 +16,8 @@ class App extends React.Component {
       editing:false,
     }
     this.fetchTasks = this.fetchTasks.bind(this)
+    this.handleChange = this.handleChange.bind(this)
+    this.handleSubmit = this.handleSubmit.bind(this)
   };
 
   componentWillMount(){
@@ -34,6 +36,58 @@ class App extends React.Component {
     )
   }
 
+  /*
+      a coisa funciona mais ou menos assim, quando o campo de input text recebe
+      alguma digitaçao, o onChance=... chama a função handleChance, e a função
+      handleChange pega os dados que vieram nesse evento e faz alguma coisa. Só
+      tem que lembrar que tem que fazer o binding (estudar mais a fundo dps) 
+  */
+
+  handleChange(e){
+    var name = e.target.name
+    var value = e.target.value
+    console.log('Name:', name)
+    console.log('Value:', value)
+     {/* a cada batida de tecla ele muda o active item que é um estado */}
+    this.setState({ 
+      activeItem:{
+        ...this.state.activeItem,
+        title:value
+      }
+    })
+  }
+
+  /* quando bater no botão submit, vai ser chamado handleSubmit, e essa função
+     vai pegar o activeItem (que é atualizado a cada batida de tecla) e vai
+     jogar esse activeItem no banco de dados. Naturalmente quando o botão for
+     acionado teremos que POSTar algum dado via rest API */
+  handleSubmit(e){
+    e.preventDefault()
+    console.log('ITEM:', this.state.activeItem)
+
+    var url = 'http://127.0.0.1:8000/api/task-create/'
+
+    fetch(url, {
+      method:'POST',
+      headers:{
+        'Content-type':'application/json',
+      },
+      body:JSON.stringify(this.state.activeItem)
+    }).then((response)  => {
+        this.fetchTasks()
+        this.setState({
+           activeItem:{
+          id:null, 
+          title:'',
+          completed:false,
+        }
+        })
+    }).catch(function(error){
+      console.log('ERROR:', error)
+    })
+    
+  }
+
 	render(){
     var tasks = this.state.todoList
 
@@ -41,11 +95,11 @@ class App extends React.Component {
 			<div className="container">
         <div id="task-container">
           <div id="form-wrapper">
-            <form id="form">
+            <form onSubmit={this.handleSubmit} id="form">
               <div className="flex-wrapper">
 
                 <div style={{flex: 6}}>
-                  <input className="form-control" id="title" type="text" name="title" placeholder="Add task.." />
+                  <input onChange={this.handleChange} className="form-control" id="title" type="text" name="title" placeholder="Add task.." />
                 </div>
                 <div style={{flex: 1}}>
                   <input id="submit" className="btn btn-warning" type="submit" name="Add" />
@@ -56,7 +110,7 @@ class App extends React.Component {
             </form>
           </div>
 
-          <div id="list-wrapper"> {/* aqui vão as tasks que foram obtidas com fetch da API */}
+          <div id="list-wrapper">
               {tasks.map(function(task, index) {
                 return(
                   <div key={index} className="task-wrapper flex-wrapper">
