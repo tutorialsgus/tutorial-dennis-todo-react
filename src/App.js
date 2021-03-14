@@ -19,6 +19,10 @@ class App extends React.Component {
     this.handleChange = this.handleChange.bind(this)
     this.handleSubmit = this.handleSubmit.bind(this)
     this.getCookie = this.getCookie.bind(this)
+
+    this.startEdit = this.startEdit.bind(this)
+    this.deleteItem = this.deleteItem.bind(this)
+    this.strikeUnstrike = this.strikeUnstrike.bind(this)
   };
 
   getCookie(name) {
@@ -122,6 +126,41 @@ class App extends React.Component {
     })
   }
 
+  deleteItem(task){
+    var csrftoken = this.getCookie('csrftoken')
+
+    fetch(`http://127.0.0.1:8000/api/task-delete/${task.id}/`, {
+      method:'DELETE',
+      headers:{
+        'Content-type':'application/json',
+        'X-CSRFToken':csrftoken,
+      },
+    }).then((response) =>{
+
+      this.fetchTasks()
+    })
+  }
+
+  strikeUnstrike(task){
+
+    task.completed = !task.completed
+    var csrftoken = this.getCookie('csrftoken')
+    var url = `http://127.0.0.1:8000/api/task-update/${task.id}/`
+
+      fetch(url, {
+        method:'POST',
+        headers:{
+          'Content-type':'application/json',
+          'X-CSRFToken':csrftoken,
+        },
+        body:JSON.stringify({'completed': task.completed, 'title':task.title})
+      }).then(() => {
+        this.fetchTasks()
+      })
+
+    console.log('TASK:', task.completed)
+  }
+
 	render(){
     var tasks = this.state.todoList
     var self = this
@@ -150,8 +189,14 @@ class App extends React.Component {
                 return(
                   <div key={index} className="task-wrapper flex-wrapper">
 
-                    <div style={{flex:7}}>
-                      <span>{task.title}</span>
+                    <div onClick={() => self.strikeUnstrike(task)} style={{flex:7}}>
+
+                        {task.completed == false ? (
+                          <span>{task.title}</span>
+                        ) : (
+                          <strike>{task.title}</strike>
+                        )}
+
                     </div>
                     {/* no button onClick permite que ao clicar em Edit o texto da textfield seja atualizado */}
                     <div style={{flex:1}}>
@@ -159,7 +204,7 @@ class App extends React.Component {
                     </div>
 
                     <div style={{flex:1}}>
-                      <button className="btn btn-sm btn-outline-dark delete">-</button>
+                      <button onClick={() => self.deleteItem(task)} className="btn btn-sm btn-outline-dark delete">-</button>
                     </div>
 
                   </div>
