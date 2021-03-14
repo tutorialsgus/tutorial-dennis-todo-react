@@ -86,6 +86,13 @@ class App extends React.Component {
 
     var url = 'http://127.0.0.1:8000/api/task-create/'
 
+    if(this.state.editing == true){
+      url = `http://127.0.0.1:8000/api/task-update/${ this.state.activeItem.id}/`
+      this.setState({
+        editing:false
+      })
+    }
+
     fetch(url, {
       method:'POST',
       headers:{
@@ -108,8 +115,16 @@ class App extends React.Component {
     
   }
 
+  startEdit(task){
+    this.setState({
+      activeItem:task,
+      editing:true,
+    })
+  }
+
 	render(){
     var tasks = this.state.todoList
+    var self = this
 
 		return(
 			<div className="container">
@@ -119,7 +134,7 @@ class App extends React.Component {
               <div className="flex-wrapper">
 
                 <div style={{flex: 6}}>
-                  <input onChange={this.handleChange} className="form-control" id="title" type="text" name="title" placeholder="Add task.." />
+                  <input onChange={this.handleChange} className="form-control" id="title" value={this.state.activeItem.title} type="text" name="title" placeholder="Add task.." />
                 </div>
                 <div style={{flex: 1}}>
                   <input id="submit" className="btn btn-warning" type="submit" name="Add" />
@@ -138,9 +153,9 @@ class App extends React.Component {
                     <div style={{flex:7}}>
                       <span>{task.title}</span>
                     </div>
-
+                    {/* no button onClick permite que ao clicar em Edit o texto da textfield seja atualizado */}
                     <div style={{flex:1}}>
-                      <button className="btn btn-sm btn-outline-info">Edit</button>
+                      <button onClick={() => self.startEdit(task)} className="btn btn-sm btn-outline-info">Edit</button>
                     </div>
 
                     <div style={{flex:1}}>
